@@ -19,3 +19,17 @@ tasks:
     desc: Format source files
     cmds:
       - zig fmt build.zig
+
+  tag:
+    desc: "Compute next version, generate changelog, tag, and push"
+    vars:
+      VERSION:
+        sh: git-cliff --bump --unreleased --context | jq -r '.[0].version // empty'
+    cmds:
+      - "test -n \"{{.VERSION}}\" || (echo \"No version bump detected from
+        commits\" && exit 1)"
+      - "git-cliff --tag {{.VERSION}} -o CHANGELOG.md"
+      - git add CHANGELOG.md
+      - "git commit -m \"chore(release): {{.VERSION}}\""
+      - "git tag {{.VERSION}}"
+      - git push origin HEAD --tags
